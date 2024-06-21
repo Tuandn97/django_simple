@@ -2,3 +2,9 @@ Django==4.2
 python-dotenv
 djangorestframework
 psycopg2-binary
+langchain-openai
+python-dotenv
+langchain-google-genai
+langchain-community
+ca-vntl-helper==1.1.6
+wikipedia

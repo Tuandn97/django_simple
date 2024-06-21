@@ -17,11 +17,13 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
-from chatbot.views import list_create_conversation, retrieve_update_destroy_conversation, answer_message
+from chatbot.views import list_create_conversation, retrieve_update_destroy_conversation, answer_message, system_prompt_list_create, system_prompt_retrieve_update_destroy
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("conversations/", list_create_conversation, name="list_create_conversation"),
     path("conversations/<int:pk>/", retrieve_update_destroy_conversation, name="retrieve_update_destroy_conversation"),
+    path("system-prompts/", system_prompt_list_create, name="system_prompt_list_create"),
+    path("system-prompts/<int:pk>/", system_prompt_retrieve_update_destroy, name="system_prompt_retrieve_update_destroy"),
     path("answer/", answer_message, name="answer_message"),
 ]
