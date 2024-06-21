@@ -11,6 +11,8 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.messages import AIMessage, HumanMessage
 from chatbot.models import Conversation, SystemPrompt
 from ca_vntl_helper import error_tracking_decorator
+from chatbot.chat_service.agent_basic import load_agent_executor
+from chatbot.chat_service.tools import tools
 
 
 # MENU = "Please select your Expert that you want." \
@@ -51,26 +53,45 @@ def load_llm(provider="google"):
 
 def get_prompt(character=""):
     #load prompt from database
-    system_prompt_qs= SystemPrompt.objects.filter(character=character)
-    if not  system_prompt_qs.exists():
-        raise ValueError("System prompt not found")
-    system_prompt_instance = system_prompt_qs.first()
-    system_prompt = system_prompt_instance.character
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", system_prompt),
-        MessagesPlaceholder(variable_name="chat_history"),
-        ("user", "{input}")
-    ])
+    # system_prompt_qs= SystemPrompt.objects.filter(character=character)
+    # if not  system_prompt_qs.exists():
+    #     raise ValueError("System prompt not found")
+    # system_prompt_instance = system_prompt_qs.first()
+    # system_prompt = system_prompt_instance.character
+    # prompt = ChatPromptTemplate.from_messages([
+    #     ("system", system_prompt),
+    #     MessagesPlaceholder(variable_name="chat_history"),
+    #     ("user", "{input}")
+    # ])
+    # return prompt
+    system_prompt_content = ("You are doctor. You can help user with information from vectordb."
+                             "You can call tool function 'load_data_from_vector_db' to get information from vectordb with input: 'load_data_from_vector_db('search term')"
+                             "You always using tool to get information, don't answer by yourself."
+                             )
+
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                system_prompt_content
+            ),
+            MessagesPlaceholder(variable_name="chat_history"),
+            ("user", "{input}"),
+            MessagesPlaceholder(variable_name="agent_scratchpad"),
+        ]
+    )
     return prompt
 
 
 def run_chat_bot(user_input, chat_history, provider="google", character="finance"):
     llm = load_llm(provider)
     prompt = get_prompt(character)
-    output_parser = StrOutputParser()
-    chain = prompt | llm | output_parser
-    output = chain.invoke({"input": user_input, 'chat_history': chat_history})
-    return output
+    # output_parser = StrOutputParser()
+    # chain = prompt | llm | output_parser
+    agent_executor = load_agent_executor(llm, tools, prompt)
+    output = agent_executor.invoke({"input": user_input, "chat_history": chat_history})
+    return output['output']
 
 
 # def save_chat_history(chat_history, character):
